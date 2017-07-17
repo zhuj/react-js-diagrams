@@ -11,10 +11,11 @@ export class LinkLayerWidget extends React.Component {
       if (link.sourcePort !== null) {
         try {
           //generate a point
-          link.points[0].updateLocation(this.props.diagramEngine.getPortCenter(link.sourcePort));
+          _.first(link.points).updateLocation(this.props.diagramEngine.getPortCenter(link.sourcePort));
         }
         // Remove the link because its problematic (TODO implement this rather at an engine level)
         catch (ex) {
+          console.error(ex);
           diagramModel.removeLink(link);
           return;
         }
@@ -25,6 +26,7 @@ export class LinkLayerWidget extends React.Component {
         }
         //remove the link because its problematic (TODO implement this rather at an engine level)
         catch (ex) {
+          console.error(ex);
           diagramModel.removeLink(link);
           return;
         }

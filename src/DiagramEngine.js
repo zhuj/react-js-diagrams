@@ -82,10 +82,10 @@ export class DiagramEngine extends BaseEntity {
 
   registerInstanceFactory(factory) {
     this.instanceFactories[factory.getName()] = factory;
-    // Check for a link instance factory to be used when creating new links via drag
-    if (factory.getInstance() instanceof LinkModel) {
-      this.linkInstanceFactory = factory;
-    }
+  }
+
+  setLinkInstanceFactory(factory) {
+    this.linkInstanceFactory = this.instanceFactories[factory];
   }
 
   registerNodeFactory(factory) {
@@ -135,7 +135,7 @@ export class DiagramEngine extends BaseEntity {
   }
 
   getRelativeMousePoint(event) {
-    const point = this.getRelativePoint(event.pageX, event.pageY);
+    const point = this.getRelativePoint(event.clientX, event.clientY);
     return {
       x: (point.x / (this.diagramModel.getZoomLevel() / 100.0)) - this.diagramModel.getOffsetX(),
       y: (point.y / (this.diagramModel.getZoomLevel() / 100.0)) - this.diagramModel.getOffsetY()
@@ -158,17 +158,19 @@ export class DiagramEngine extends BaseEntity {
   }
 
   getPortCenter(port) {
-    const sourceElement = this.getNodePortElement(port);
-    const sourceRect = sourceElement.getBoundingClientRect();
-    const rel = this.getRelativePoint(sourceRect.left,sourceRect.top);
-    const x = (sourceElement.offsetWidth / 2) + rel.x / (this.diagramModel.getZoomLevel() / 100.0) -
-      this.diagramModel.getOffsetX();
-    const y = (sourceElement.offsetHeight / 2) + rel.y / (this.diagramModel.getZoomLevel() / 100.0) -
-      this.diagramModel.getOffsetY();
-
-    return {
-      x,
-      y
-    };
+    if (!!this.canvas) {
+      // calculate the center precisely (from DOM)
+      const sourceElement = this.getNodePortElement(port);
+      const sourceRect = sourceElement.getBoundingClientRect();
+      const rel = this.getRelativePoint(sourceRect.left, sourceRect.top);
+      const x = (sourceElement.offsetWidth / 2) + rel.x / (this.diagramModel.getZoomLevel() / 100.0) - this.diagramModel.getOffsetX();
+      const y = (sourceElement.offsetHeight / 2) + rel.y / (this.diagramModel.getZoomLevel() / 100.0) - this.diagramModel.getOffsetY();
+      return {x, y};
+    } else {
+      // calculate the center as a center of the node
+      const x = port.parentNode.x + port.parentNode.width / 2;
+      const y = port.parentNode.y + port.parentNode.height / 2;
+      return {x, y};
+    }
   }
 }

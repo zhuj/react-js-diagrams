@@ -61,18 +61,24 @@ export class DiagramWidget extends React.Component {
     }
   }
 
+  attachDiagramEngine() {
+    const { diagramEngine } = this.props;
+    diagramEngine.setCanvas(this.refs['canvas']);
+    diagramEngine.setForceUpdate(this.forceUpdate.bind(this));
+  }
+
   componentDidUpdate() {
+    this.attachDiagramEngine();
+
     if (!this.state.renderedNodes) {
-      this.setState({
-        renderedNodes: true
-      });
+      this.setState({ renderedNodes: true });
     }
   }
 
   componentDidMount() {
+    this.attachDiagramEngine();
+
     const { diagramEngine, onChange } = this.props;
-    diagramEngine.setCanvas(this.refs['canvas']);
-    diagramEngine.setForceUpdate(this.forceUpdate.bind(this));
     const { selectAll, deselectAll, copy, paste, deleteItems } = this.getActions();
 
     // Add a keyboard listener
@@ -307,7 +313,25 @@ export class DiagramWidget extends React.Component {
     const diagramModel = diagramEngine.getDiagramModel();
     event.preventDefault();
     event.stopPropagation();
-    diagramModel.setZoomLevel(diagramModel.getZoomLevel() + (event.deltaY / 60));
+
+    /* ------------------------------------- */
+    /* --- ADD ----------------------------- */
+
+    const relativeMouse = diagramEngine.getRelativeMousePoint(event);
+    const initialOffsetX = diagramModel.getOffsetX();
+    const initialOffsetY = diagramModel.getOffsetY();
+    const initialZoom = diagramModel.getZoomLevel();
+    const zoom = initialZoom + (event.deltaY * (initialZoom / 100.0) * 0.2);
+
+    diagramModel.setOffset(
+      (relativeMouse.x + initialOffsetX) * (initialZoom/zoom) - relativeMouse.x,
+      (relativeMouse.y + initialOffsetY) * (initialZoom/zoom) - relativeMouse.y
+    );
+
+    /* --- ADD ----------------------------- */
+    /* ------------------------------------- */
+
+    diagramModel.setZoomLevel(zoom);
     diagramEngine.enableRepaintEntities([]);
     this.forceUpdate();
   }
@@ -592,7 +616,6 @@ export class DiagramWidget extends React.Component {
 
   render() {
     const { diagramEngine } = this.props;
-
     return (
       <div
         ref='canvas'

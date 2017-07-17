@@ -8,12 +8,16 @@ export class NodeWidget extends React.Component {
 
   render() {
     const { node, children, diagramEngine } = this.props;
+    const width = this.props.node.width || 0;
+    const height = this.props.node.height || 0;
     const props = {
       'data-nodeid': node.id,
       className: `node${(this.props.node.isSelected() ? ' selected' : '')}`,
       style:{
-        top: this.props.node.y,
-        left: this.props.node.x,
+        top: this.props.node.y - width/2,
+        left: this.props.node.x - height/2,
+        width: width,
+        height: height
       }
     };
     
